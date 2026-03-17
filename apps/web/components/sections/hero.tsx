@@ -90,10 +90,6 @@ export default function Hero() {
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(-16deg) rotateX(8deg) rotateZ(-2deg) scale(0.95)",
                             }}
-                            whileHover={{ 
-                                transform: "rotateY(-8deg) rotateX(4deg) scale(0.98)",
-                                transition: { duration: 0.6, ease: "easeOut" } 
-                            }}
                         >
                             {/* Dashboard header */}
                             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/50 bg-[#070b14]">
