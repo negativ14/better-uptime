@@ -179,8 +179,8 @@ function MonitoringCard() {
                     { label: "P95 Latency", value: "42ms", change: "-8%", color: "text-sky-400" },
                     { label: "Error Rate", value: "0.02%", change: "-23%", color: "text-sky-400" },
                 ].map((m, i) => (
-                    <div key={i} className="bg-slate-900/40 border border-slate-800/40 rounded-lg p-2.5">
-                        <span className="text-[8px] text-slate-500 uppercase tracking-wider block">{m.label}</span>
+                    <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
+                        <span className="text-[8px] text-slate-400 uppercase tracking-wider block">{m.label}</span>
                         <div className="flex items-baseline gap-1 mt-0.5">
                             <span className="text-sm font-bold text-white">{m.value}</span>
                             <span className={`text-[8px] font-semibold ${m.color}`}>{m.change}</span>
@@ -191,8 +191,15 @@ function MonitoringCard() {
             <div className="flex-1 flex items-end gap-[3px] relative z-10">
                 {bars.map((bar, i) => (
                     <div key={i} className="relative flex-1 bg-slate-900/30 rounded-t-sm h-full overflow-hidden">
+                        {/* Fake mask skeleton trailing behind the actual spike */}
                         <motion.div
-                            className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-sky-600 to-sky-400 rounded-t-sm"
+                            className="absolute bottom-0 left-0 w-full bg-sky-400/20 rounded-t-sm"
+                            animate={{ height: bar.h }}
+                            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: bar.delay + 0.15 }}
+                        />
+                        {/* Actual spike */}
+                        <motion.div
+                            className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-sky-600 to-sky-400 rounded-t-sm backdrop-blur-sm"
                             animate={{ height: bar.h }}
                             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: bar.delay }}
                         />
@@ -214,36 +221,62 @@ function LoggingCard() {
         { type: "info", text: "GET /api/v1/dashboard 200 18ms", time: "21:42:22" },
         { type: "warn", text: "Memory usage at 85%", time: "21:42:25" },
         { type: "info", text: "Auto-scaling triggered +2 pods", time: "21:42:28" },
+        { type: "info", text: "GET /api/v1/settings 200 22ms", time: "21:42:31" },
+        { type: "error", text: "Redis cache miss: user_prefs", time: "21:42:32" },
+        { type: "info", text: "WebSocket connected: client_id=4x9", time: "21:42:35" },
+        { type: "warn", text: "High latency on DB replica-1", time: "21:42:40" },
+        { type: "info", text: "Starting background job: cleanup", time: "21:42:42" },
+        { type: "info", text: "Job complete: deleted 142 records", time: "21:42:45" },
+        { type: "info", text: "PUT /api/v1/profile 204 31ms", time: "21:42:48" },
+        { type: "error", text: "Failed to send email: SendGrid API down", time: "21:42:50" },
+        { type: "info", text: "GET /api/v1/billing 200 15ms", time: "21:42:52" },
+        { type: "warn", text: "Disk usage at 90% on volume-3", time: "21:42:55" },
+        { type: "info", text: "Scaled down -1 pod", time: "21:42:58" },
     ];
 
     return (
         <div className="relative w-full h-full flex flex-col bg-[#050810]">
-            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-slate-800/30">
-                <div className="w-2 h-2 rounded-full bg-red-500/40" />
-                <div className="w-2 h-2 rounded-full bg-amber-500/40" />
-                <div className="w-2 h-2 rounded-full bg-green-500/40" />
-                <span className="ml-2 text-[9px] text-slate-600 font-mono">log-stream</span>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/50 bg-[#050810]/80 backdrop-blur z-20">
+                <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-700/50" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-700/50" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-700/50" />
+                    </div>
+                    <span className="ml-2 text-[10px] text-slate-500 font-mono font-medium tracking-wider">tail -f /var/log/syslog</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest">
+                    <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                        <span className="relative rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                    </span>
+                    Live
+                </div>
             </div>
             <div className="flex-1 relative overflow-hidden">
                 <motion.div
-                    className="flex flex-col gap-1.5 p-3 font-mono text-[10px]"
+                    className="absolute inset-x-0 top-0 flex flex-col"
                     animate={{ y: ["0%", "-50%"] }}
-                    transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+                    transition={{ duration: 40, ease: "linear", repeat: Infinity }}
                 >
-                    {[...logs, ...logs].map((log, i) => (
-                        <div key={i} className="flex items-start gap-2 px-1 py-0.5 hover:bg-slate-800/20 rounded-sm transition-colors">
-                            <span className="text-slate-700 shrink-0">{log.time}</span>
-                            <span className={`shrink-0 font-bold ${log.type === 'info' ? 'text-sky-400' : log.type === 'warn' ? 'text-amber-400' : 'text-red-400'}`}>
-                                [{log.type.toUpperCase()}]
-                            </span>
-                            <span className={`${log.type === 'error' ? 'text-red-300/70' : log.type === 'warn' ? 'text-amber-200/50' : 'text-slate-400'}`}>
-                                {log.text}
-                            </span>
+                    {[1, 2].map((listIdx) => (
+                        <div key={listIdx} className="flex flex-col gap-1 py-1.5 px-3 font-mono text-[11px] sm:text-xs tracking-tight">
+                            {logs.map((log, i) => (
+                                <div key={i} className="flex items-start gap-2.5 px-2 py-1.5 rounded transition-all duration-300 hover:bg-slate-800/30 group">
+                                    <span className="text-slate-600 shrink-0 font-medium group-hover:text-slate-500">{log.time}</span>
+                                    <span className={`shrink-0 font-bold tracking-wider flex w-10 justify-end ${log.type === 'info' ? 'text-sky-400' : log.type === 'warn' ? 'text-amber-400' : 'text-rose-400'}`}>
+                                        {log.type.toUpperCase()}
+                                    </span>
+                                    <span className={`truncate flex-1 ml-1 ${log.type === 'error' ? 'text-rose-200/90' : log.type === 'warn' ? 'text-amber-100/70' : 'text-slate-300 group-hover:text-white'}`}>
+                                        {log.text}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     ))}
                 </motion.div>
-                <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#050810] to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#050810] to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[#050810] to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#050810] to-transparent z-10 pointer-events-none" />
             </div>
         </div>
     );
